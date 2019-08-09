@@ -29,72 +29,106 @@ req_headers = {
 }
 
 #base list of URLs
-urla = {"mission": "https://www.zillow.com/mission-tx-78572/houses/", "mcallen": "https://www.zillow.com/homes/McAllen-TX_rb/houses/", "pharr": "https://www.zillow.com/homes/Pharr-TX_rb/houses/", "edinburg": "https://www.zillow.com/homes/Edinburg-TX_rb/houses/"}
+urla = ["https://www.zillow.com/mission-tx-78572/houses/", "https://www.zillow.com/mcallen-tx/houses", "https://www.zillow.com/homes/Pharr-TX_rb/","https://www.zillow.com/homes/Edinburg-TX_rb/"]
 
-queryString = """{insert_page}_p/?searchQueryState={{"pagination":{{"currentPage":{insert_page}}},"mapBounds":{{"west":-98.449305,"east":-98.275612,"south":26.102146,"north":26.27471}},"usersSearchTerm":"78572","regionSelection":[{{"regionId":92515,"regionType":7}}],"filterState":{{"isMakeMeMove":{{"value":false}},"isAllHomes":{{"value":true}},"isLotLand":{{"value":{insert_lots}}},"isMultiFamily":{{"value":false}},"isManufactured":{{"value":{insert_manufactured}}},"isCondo":{{"value":{insert_condo}}}}}"""
-
-#query settings
-include_lots = "false"
-is_manufactured = "false"
-is_condo = "false"
+urlb = ["https://www.zillow.com/mcallen-tx/houses"]
 
 
 
-#voodoo magic
-with requests.Session() as s:
-    url = urla["mission"]
-    r = s.get(url, headers=req_headers)
+urlBaseMission = ["""https://www.zillow.com/mission-tx-78572/houses/""" , """_p/?searchQueryState={"pagination":{"currentPage":""", """},"mapBounds":{"west":-98.49463776025391,"east":-98.2302792397461,"south":26.091682784797964,"north":26.285156790575897},"regionSelection":[{"regionId":92515,"regionType":7}],"mapZoom":12,"filterState":{"isMakeMeMove":{"value":false},"isCondo":{"value":false},"isMultiFamily":{"value":false},"isManufactured":{"value":false},"isLotLand":{"value":false},"isTownhouse":{"value":false}},"isListVisible":true,"isMapVisible":false}"""]
 
-soup = BeautifulSoup(r.content, 'lxml')
+urlBaseMcAllen = ["""https://www.zillow.com/mcallen-tx/houses/""","""_p/?searchQueryState={"pagination":{"currentPage":""","""},"mapBounds":{"west":-98.317891,"east":-98.195389,"south":26.10213,"north":26.349834},"usersSearchTerm":"McAllen%20TX","regionSelection":[{"regionId":25818,"regionType":6}],"filterState":{"isAllHomes":{"value":true},"isMultiFamily":{"value":false},"isCondo":{"value":false},"isTownhouse":{"value":false},"isManufactured":{"value":false},"isLotLand":{"value":false}}}"""]
 
-#find max listings
-max_listings = int(re.findall("\d+",soup.find('span',{'class': 'result-count'}).text)[0])
-i = 0
-j = 1
-#scrape every listing
-while (i < 80):
-    print("looping")
+urlBasePharr = ["""https://www.zillow.com/pharr-tx/houses/""","""_p/?searchQueryState={"pagination":{"currentPage":""","""},"mapBounds":{"west":-98.229504,"east":-98.145055,"south":26.053268,"north":26.253715},"usersSearchTerm":"Pharr%20TX","regionSelection":[{"regionId":47082,"regionType":6}],"filterState":{"isMakeMeMove":{"value":false},"isAllHomes":{"value":true},"isCondo":{"value":false},"isMultiFamily":{"value":false},"isManufactured":{"value":false},"isLotLand":{"value":false},"isTownhouse":{"value":false}}}"""]
+
+urlBaseEdinburg = ["""https://www.zillow.com/edinburg-tx/houses/""","""_p/?searchQueryState={"pagination":{"currentPage":""","""},"mapBounds":{"west":-98.498808,"east":-98.015619,"south":26.237148,"north":26.633589},"usersSearchTerm":"Edinburg%20TX","regionSelection":[{"regionId":4521,"regionType":6}],"filterState":{"isMakeMeMove":{"value":false},"isAllHomes":{"value":true},"isCondo":{"value":false},"isMultiFamily":{"value":false},"isManufactured":{"value":false},"isLotLand":{"value":false},"isTownhouse":{"value":false}}}"""]
+
+urlList = [urlBaseMission, urlBaseMcAllen, urlBasePharr, urlBaseEdinburg]
+
+for k,item in enumerate(urlList):
     #voodoo magic
     with requests.Session() as s:
-        if j is 1:
-            url = urla["mission"]
-        else:
-            qstring = queryString.format(insert_page = j, insert_lots = include_lots, insert_manufactured = is_manufactured, insert_condo = is_condo)
-            url = urla["mission"] + qstring
-            print(url)
-        j += 1
-        r = s.get(url, headers=req_headers)
+        r = s.get(urla[k], headers=req_headers)
 
     soup = BeautifulSoup(r.content, 'lxml')
 
-    #for every <a> element with the class "list-card-info"
-    for li in soup.find_all('a', {'class': "list-card-info"}):
-        price_raw = li.find('div', {'class': 'list-card-price'}).text
-        price_list = re.findall("\d+", price_raw)
-        price = int(''.join(price_list))
+    #find max listings
+    max_listings = int(re.findall("\d+",soup.find('span',{'class': 'result-count'}).text)[0])
+    i = 0
+    j = 1
+    #scrape every listing
+    while (i < max_listings):
+        print("looping")
+        if j is 1:
+            url = urla[k]
+        else:
+            url = str(j).join(item)
+        print(url)
+        #voodoo magic
+        with requests.Session() as s:
+            r = s.get(url, headers=req_headers)
+            j += 1
 
-        list_card_details = li.find('ul', {'class': 'list-card-details'})
-        info_list = list_card_details.find_all('li')
-        bedrooms_raw, baths_raw, square_feet_raw = info_list[0].text, info_list[1].text, info_list[2].text
-        bedrooms = int(re.findall("\d+",bedrooms_raw)[0])
-        baths = int(re.findall("\d+", baths_raw)[0])
-        square_feet = int(''.join(re.findall("\d+", square_feet_raw)))
-        
-        address_raw = li.find('h3', {'class': 'list-card-addr'}).text
-        print(address_raw)
-        address, city, zipcode_raw = address_raw.split(", ")
-        try:
-            zipcode = int(re.findall("\d+",zipcode_raw)[0])
-        except:
-            zipcode = 0
+        soup = BeautifulSoup(r.content, 'lxml')
 
-        sql11 = sql1.format(insert_address = address, insert_price =price, insert_bedrooms = bedrooms, insert_bathrooms = baths, insert_sqft = square_feet, insert_city = city, insert_zipcode = zipcode)
-        sql21 = sql2.format(insert_address = address, insert_price =price, insert_bedrooms = bedrooms, insert_bathrooms = baths, insert_sqft = square_feet, insert_city = city, insert_zipcode = zipcode)
-        c.execute(sql11)
-        c.execute(sql21)
-        # cxn.commit()
-        i += 1
+        #for every <a> element with the class "list-card-info"
+        for li in soup.find_all('a', {'class': "list-card-info"}):
+            try:
+                price_raw = li.find('div', {'class': 'list-card-price'}).text
+            except:
+                i+=1
+                continue
+            
+            price_list = re.findall("\d+", price_raw)
+            try:
+                price = int(''.join(price_list))
+            except:
+                i += 1
+                continue
 
-    time.sleep(3)
-# cxn.commit()
+            list_card_details = li.find('ul', {'class': 'list-card-details'})
+            info_list = list_card_details.find_all('li')
+            try:
+                bedrooms_raw, baths_raw, square_feet_raw = info_list[0].text, info_list[1].text, info_list[2].text
+            except:
+                i+=1
+                continue
+
+            try:
+                bedrooms = int(re.findall("\d+",bedrooms_raw)[0])
+            except:
+                bedrooms = 0
+            try:
+                baths = int(re.findall("\d+", baths_raw)[0])
+            except:
+                baths = 0
+            try:
+                square_feet = int(''.join(re.findall("\d+", square_feet_raw)))
+            except:
+                square_feet = 0
+            
+            address_raw = li.find('h3', {'class': 'list-card-addr'}).text
+            print(address_raw)
+            try:
+                address, city, zipcode_raw = address_raw.split(", ")
+            except:
+                i += 1
+                continue
+
+            try:
+                zipcode = int(re.findall("\d+",zipcode_raw)[0])
+            except:
+                zipcode = 0
+
+            sql11 = sql1.format(insert_address = address, insert_price =price, insert_bedrooms = bedrooms, insert_bathrooms = baths, insert_sqft = square_feet, insert_city = city, insert_zipcode = zipcode)
+            sql21 = sql2.format(insert_address = address, insert_price =price, insert_bedrooms = bedrooms, insert_bathrooms = baths, insert_sqft = square_feet, insert_city = city, insert_zipcode = zipcode)
+            c.execute(sql11)
+            c.execute(sql21)
+            cxn.commit()
+            i += 1
+
+        time.sleep(3)
+        if (j * 30) > max_listings:
+            break
+    cxn.commit()
 cxn.close()
