@@ -1,7 +1,3 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -31,10 +27,6 @@ req_headers = {
 #base list of URLs
 urla = ["https://www.zillow.com/mission-tx-78572/houses/", "https://www.zillow.com/mcallen-tx/houses", "https://www.zillow.com/homes/Pharr-TX_rb/","https://www.zillow.com/homes/Edinburg-TX_rb/"]
 
-urlb = ["https://www.zillow.com/mcallen-tx/houses"]
-
-
-
 urlBaseMission = ["""https://www.zillow.com/mission-tx-78572/houses/""" , """_p/?searchQueryState={"pagination":{"currentPage":""", """},"mapBounds":{"west":-98.49463776025391,"east":-98.2302792397461,"south":26.091682784797964,"north":26.285156790575897},"regionSelection":[{"regionId":92515,"regionType":7}],"mapZoom":12,"filterState":{"isMakeMeMove":{"value":false},"isCondo":{"value":false},"isMultiFamily":{"value":false},"isManufactured":{"value":false},"isLotLand":{"value":false},"isTownhouse":{"value":false}},"isListVisible":true,"isMapVisible":false}"""]
 
 urlBaseMcAllen = ["""https://www.zillow.com/mcallen-tx/houses/""","""_p/?searchQueryState={"pagination":{"currentPage":""","""},"mapBounds":{"west":-98.317891,"east":-98.195389,"south":26.10213,"north":26.349834},"usersSearchTerm":"McAllen%20TX","regionSelection":[{"regionId":25818,"regionType":6}],"filterState":{"isAllHomes":{"value":true},"isMultiFamily":{"value":false},"isCondo":{"value":false},"isTownhouse":{"value":false},"isManufactured":{"value":false},"isLotLand":{"value":false}}}"""]
@@ -45,6 +37,7 @@ urlBaseEdinburg = ["""https://www.zillow.com/edinburg-tx/houses/""","""_p/?searc
 
 urlList = [urlBaseMission, urlBaseMcAllen, urlBasePharr, urlBaseEdinburg]
 
+#go through the cities of mission, mcallen, pharr, and edinburg for scraping
 for k,item in enumerate(urlList):
     #voodoo magic
     with requests.Session() as s:
@@ -58,7 +51,6 @@ for k,item in enumerate(urlList):
     j = 1
     #scrape every listing
     while (i < max_listings):
-        print("looping")
         if j is 1:
             url = urla[k]
         else:
