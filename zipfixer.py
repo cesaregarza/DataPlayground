@@ -53,7 +53,12 @@ for i in zero_list_raw:
 fix_zip_sql = """update listings
 set zipcode = {insert_zipcode} where lat={insert_lat} and lon={insert_lon};"""
 
-#Check if the point lands within the convex hull of the zip code. Imperfect, as it turns out zero zip code gives the wrong lat, lon from TAMU. But this allows correction!
+###
+# Check if the point lands within the convex hull of the zip code. 
+# Imperfect, as it turns out zero zip code gives the wrong lat, lon from TAMU. 
+# But this allows correction! 
+# We can nail the zip code anyway, then plug it back into TAMU for new values
+###
 for i in zero_list:
     for j,k in enumerate(zip_points):
         if in_hull(k, i):
