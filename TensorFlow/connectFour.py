@@ -1,5 +1,9 @@
+import csv, random
+
+
 rows = 6
 columns = 7
+plays = [1, -1]
 board_state = [0] * (rows * columns)
 
 
@@ -142,22 +146,37 @@ def check_diagonal_2(row, column):
     return False
     
 
+def main():
+    player = 0
+    try:
+        f = open('c4.csv')
+        f.close()
+    except:
+        with open('c4.csv', 'a') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow(['boardstate', 'lastplaced','win'])
     
 
+    state = True
+    while state:
+        player = (player + 1) % 2
+        pos = False
+        
+        while pos is False:
+            move = random.randint(0,6)
+            pos = place_piece(player, move)
+            
+            if pos is False:
+                continue
+            else:
+                state = not check_if_win(pos)
+
+        with open('c4.csv','a') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow([board_state, move, int(not state) * plays[player - 1]])
+
+    print_board()
 
 
-place_piece(1, 3)
-place_piece(2, 4)
-place_piece(1, 4)
-place_piece(2, 5)
-place_piece(1, 6)
-place_piece(2, 6)
-place_piece(1, 6)
-place_piece(2, 5)
-place_piece(1, 5)
-place_piece(2, 0)
-place_piece(1, 6)
-
-print(check_diagonal_1(2,6))
-print_board()
+main()
     
