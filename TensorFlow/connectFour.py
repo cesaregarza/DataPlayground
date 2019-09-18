@@ -162,6 +162,7 @@ def main():
         player = (player + 1) % 2
         pos = False
         
+        
         while pos is False:
             move = random.randint(0,6)
             pos = place_piece(player, move)
