@@ -352,3 +352,6 @@ last_fm_df = pd.read_hdf("appended_lastfm.h5", key="df")
 spotify_df = pd.read_hdf("full_spotify_df.h5", key="df")
 
 # %%
+import scipy.stats as st
+
+st.expon
